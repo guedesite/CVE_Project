@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVEs - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .severity {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        .severity-critical { background-color: #dc3545; color: white; }
+        .severity-high { background-color: #fd7e14; color: white; }
+        .severity-medium { background-color: #ffc107; color: black; }
+        .severity-low { background-color: #28a745; color: white; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Dashboard CVE</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Sources</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/cves">CVEs</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2>Liste des CVEs</h2>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID CVE</th>
+                                <th>Date de publication</th>
+                                <th>Description</th>
+                                <th>CVSS Score</th>
+                                <th>Source</th>
+                                <th>Vendeurs</th>
+                                <th>Produits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cve in cves %}
+                            <tr>
+                                <td>{{ cve[1] }}</td>
+                                <td>{{ cve[3] }}</td>
+                                <td>{{ cve[5] }}</td>
+                                <td>
+                                    <span class="severity severity-{{ 'critical' if cve[6] >= 9.0 else 'high' if cve[6] >= 7.0 else 'medium' if cve[6] >= 4.0 else 'low' }}">
+                                        {{ cve[6] }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ cve[12] }}" target="_blank" class="text-decoration-none">
+                                        {{ cve[12] }}
+                                    </a>
+                                </td>
+                                <td>{{ cve[8] }}</td>
+                                <td>{{ cve[9] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
