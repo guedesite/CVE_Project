@@ -39,6 +39,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/cves">CVEs</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/download">Télécharger</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -47,7 +50,12 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-12">
-                <h2>Sources de CVE</h2>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">Sources de CVE</h2>
+                    <button class="btn btn-primary" onclick="downloadCVEs()">
+                        <i class="bi bi-download"></i> Télécharger les CVE
+                    </button>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-striped">
                         <thead class="table-dark">
@@ -82,5 +90,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script>
+        function downloadCVEs() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Téléchargement...';
+            
+            fetch('/download_cves', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Une erreur est survenue lors du téléchargement des CVE');
+                })
+                .finally(() => {
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                });
+        }
+    </script>
 </body>
 </html>

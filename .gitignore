@@ -34,10 +34,6 @@ ENV/
 # Logs
 *.log
 
-# Database
-*.db
-*.sqlite3
-
 # Environment variables
 .env
 .env.local
@@ -75,7 +71,3 @@ instance/
 .env
 .env.local
 .env.*.local
-
-# MySQL
-*.sql
-*.sql~

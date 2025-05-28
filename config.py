@@ -12,3 +12,20 @@ class Config:
     
     DEBUG = True
     SECRET_KEY = os.getenv('FLASK_SECRET_KEY', 'dev-key-please-change')
+    
+    CVE_SOURCES = {
+        'opencve': {
+            'name': 'OpenCVE',
+            'enabled': True,
+            'api_url': 'https://app.opencve.io/api',
+            'auth_required': True,
+            'username': 'uname',
+            'password': 'psswd',
+            'endpoints': {
+                'cves': '/cve'
+            },
+            'params': {
+                'per_page': 10
+            }
+        }
+    }
