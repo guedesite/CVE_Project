@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, flash
+from flask import Flask, request, jsonify, render_template, flash, send_file
 from flask_cors import CORS
 import mysql.connector
 from datetime import datetime, timedelta
@@ -6,7 +6,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 from config import Config
 import json
-
+import os 
 app = Flask(__name__)
 CORS(app)
 app.config.from_object(Config)
@@ -238,27 +238,43 @@ def create_cve():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# serve builded vite app
 @app.route('/')
 def index():
-    try:
-        conn = get_db_connection()
-        if not conn:
-            return "Error connecting to database"
-            
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT s.id, s.url, COUNT(c.id) as cve_count
-            FROM source s
-            LEFT JOIN cve c ON s.id = c.source_id
-            GROUP BY s.id, s.url
-        """)
-        sources = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        
-        return render_template('index.html', sources=sources)
-    except Exception as e:
-        return f"Error: {str(e)}"
+    index_path = "./web/dist/index.html"
+    if os.path.exists(index_path):
+        return send_file(os.path.abspath(index_path))
+    else:
+        return f"index.html not found in ./web/dist/index.html", 404
+    #
+    #try:
+    #    conn = get_db_connection()
+    #    if not conn:
+    #        return "Error connecting to database"
+    #        
+    #    cursor = conn.cursor()
+    #    cursor.execute("""
+    #        SELECT s.id, s.url, COUNT(c.id) as cve_count
+    #        FROM source s
+    #        LEFT JOIN cve c ON s.id = c.source_id
+    #        GROUP BY s.id, s.url
+    #    """)
+    #    sources = cursor.fetchall()
+    #    cursor.close()
+    #    conn.close()
+    #    
+    #    return render_template('index.html', sources=sources)
+    #except Exception as e:
+    #    return f"Error: {str(e)}"
+
+# static route for builded vite app
+@app.route('/<path:filename>')
+def static_files(filename):
+    file_path = os.path.join("./web/dist/", filename)
+    if os.path.exists(file_path):
+        return send_file(os.path.abspath(file_path))
+    else:
+        return f"File {filename} not found in ./web/dist/index.html", 404
 
 @app.route('/cves')
 def cves():
