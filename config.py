@@ -8,7 +8,7 @@ class Config:
     MYSQL_PORT = 3306
     MYSQL_USER = 'root'
     MYSQL_PASSWORD = 'azerty'
-    MYSQL_DATABASE = 'cve_test'
+    MYSQL_DATABASE = 'cve_project'
     
     DEBUG = True
     SECRET_KEY = os.getenv('FLASK_SECRET_KEY', 'dev-key-please-change')

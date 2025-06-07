@@ -2,118 +2,54 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard CVE</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .card {
-            margin-bottom: 20px;
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .severity {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-weight: bold;
-        }
-        .severity-critical { background-color: #dc3545; color: white; }
-        .severity-high { background-color: #fd7e14; color: white; }
-        .severity-medium { background-color: #ffc107; color: black; }
-        .severity-low { background-color: #28a745; color: white; }
-    </style>
+    <title>Formulaire CVE Lookup</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">Dashboard CVE</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/">Sources</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/cves">CVEs</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/download">Télécharger</a>
-                    </li>
-                </ul>
+    <h1>Rechercher les CVE d'une bibliothèque</h1>
+    <form id="cveForm">
+        <div id="libInputs">
+            <div>
+                <input type="text" name="lib_name" placeholder="Nom de la bibliothèque">
+                <input type="text" name="lib_version" placeholder="Version (optionnelle)">
             </div>
         </div>
-    </nav>
+        <button type="button" onclick="addField()">Ajouter une bibliothèque</button>
+        <button type="submit">Rechercher</button>
+    </form>
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="mb-0">Sources de CVE</h2>
-                    <button class="btn btn-primary" onclick="downloadCVEs()">
-                        <i class="bi bi-download"></i> Télécharger les CVE
-                    </button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>URL</th>
-                                <th>Nombre de CVEs</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for source in sources %}
-                            <tr>
-                                <td>{{ source[0] }}</td>
-                                <td>
-                                    <a href="{{ source[1] }}" target="_blank" class="text-decoration-none">
-                                        {{ source[1] }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <span class="badge bg-primary">
-                                        {% set count = source[2] if source[2] is defined else 0 %}
-                                        {{ count }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+    <h2>Résultats :</h2>
+    <pre id="results"></pre>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script>
-        function downloadCVEs() {
-            const button = event.target;
-            const originalText = button.innerHTML;
-            
-            button.disabled = true;
-            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Téléchargement...';
-            
-            fetch('/download_cves', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    window.location.reload();
-                })
-                .catch(error => {
-                    console.error('Erreur:', error);
-                    alert('Une erreur est survenue lors du téléchargement des CVE');
-                })
-                .finally(() => {
-                    button.disabled = false;
-                    button.innerHTML = originalText;
-                });
+        function addField() {
+            const div = document.createElement('div');
+            div.innerHTML = '<input type="text" name="lib_name" placeholder="Nom de la bibliothèque"> <input type="text" name="lib_version" placeholder="Version (optionnelle)">';
+            document.getElementById('libInputs').appendChild(div);
         }
+
+        document.getElementById('cveForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const inputs = document.querySelectorAll('#libInputs div');
+            const libs = [];
+
+            inputs.forEach(div => {
+                const name = div.querySelector('input[name="lib_name"]').value;
+                const version = div.querySelector('input[name="lib_version"]').value;
+                if (name) {
+                    libs.push({ lib_name: name, lib_version: version });
+                }
+            });
+
+            const response = await fetch('/api/search_cves', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ libs })
+            });
+
+            const result = await response.json();
+            document.getElementById('results').textContent = JSON.stringify(result, null, 2);
+        });
+
     </script>
 </body>
 </html>

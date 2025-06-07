@@ -1,99 +1,67 @@
-DROP DATABASE IF EXISTS cve_test;
-CREATE DATABASE IF NOT EXISTS cve_test;
+DROP DATABASE IF EXISTS cve_project;
+CREATE DATABASE cve_project;
+USE cve_project;
 
-USE cve_test;
-
-CREATE TABLE `cve` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `cve_id` varchar(255),
-  `source_id` integer,
-  `published_date` datetime,
-  `last_modified_date` datetime,
-  `description` varchar(255),
-  `cvss_v3_score` double,
-  `cvss_v3_vector` varchar(255),
-  `vendors` varchar(255),
-  `products` varchar(255),
-  `raw_data` JSON
+-- Table des sources
+CREATE TABLE source (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  url VARCHAR(255)
 );
 
-CREATE TABLE `source` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `url` varchar(255)
+-- Table des CVE
+CREATE TABLE cve (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  cve_id VARCHAR(255) UNIQUE NOT NULL,
+  source_id INT,
+  published_date DATETIME,
+  last_modified_date DATETIME,
+  description TEXT,
+  cvss_v3_score DOUBLE,
+  cvss_v3_vector VARCHAR(255),
+  raw_data JSON,
+  FOREIGN KEY (source_id) REFERENCES source(id)
 );
 
-ALTER TABLE `cve` ADD FOREIGN KEY (`source_id`) REFERENCES `source` (`id`);
-
-
-INSERT INTO `source` (`id`, `url`) VALUES
-(1, 'https://www.opencve.io'),
-(2, 'https://cvedetails.com'),
-(3, 'https://nvd.nist.gov');
-
-
-INSERT INTO `cve` (`id`, `cve_id`, `source_id`, `published_date`, `last_modified_date`, `description`, `cvss_v3_score`, `cvss_v3_vector`, `vendors`, `products`, `raw_data`) VALUES
-(
-  101,
-  'CVE-2024-0001',
-  1,
-  '2024-01-15 10:00:00',
-  '2024-01-20 12:30:00',
-  'Une vulnérabilité critique dans le composant X permettant une exécution de code à distance.',
-  9.8,
-  'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
-  '["VendorA", "VendorB"]',
-  '["ProductX v1.0", "ProductY v2.2"]',
-  '{"id": "CVE-2024-0001", "summary": "Critical RCE in X component.", "details": "Further details here...", "cvss_metrics": {"v31": {"score": 9.8, "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"}}}'
-),
-(
-  102,
-  'CVE-2024-0002',
-  2,
-  '2024-02-10 08:00:00',
-  '2024-02-11 15:00:00',
-  'Faille de type Cross-Site Scripting (XSS) dans le module de recherche.',
-  6.1,
-  'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N',
-  '["VendorC"]',
-  '["WebAppSuite v3.0"]',
-  '{"cve_id": "CVE-2024-0002", "description_text": "XSS in search module.", "affected_products": [{"vendor": "VendorC", "product": "WebAppSuite", "versions": ["3.0", "3.1-beta"]}]}'
-),
-(
-  103,
-  'CVE-2023-1234',
-  1,
-  '2023-11-01 14:00:00',
-  '2024-01-05 09:45:00',
-  'Vulnérabilité de déni de service dans le service Z.',
-  7.5,
-  'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H',
-  '["VendorA"]',
-  '["ServiceZ Core"]',
-  '{"id": "CVE-2023-1234", "summary": "DoS in Z service.", "references": ["url1", "url2"]}'
-),
-(
-  104,
-  'CVE-2024-0003',
-  3,
-  '2024-03-01 11:00:00',
-  '2024-03-02 16:20:00',
-  'Escalade de privilèges possible via une mauvaise configuration des permissions.',
-  7.8,
-  'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H',
-  '["OSProvider"]',
-  '["KernelXYZ"]',
-  '{"cve": {"CVE_data_meta": {"ID": "CVE-2024-0003"}, "description": {"description_data": [{"lang": "en", "value": "Privilege escalation due to misconfigured permissions."}]}, "impact": {"baseMetricV3": {"cvssV3": {"baseScore": 7.8}}}}}'
-),
-(
-  105,
-  'CVE-2024-0004',
-  2,
-  '2024-03-15 09:00:00',
-  '2024-03-15 09:00:00',
-  'Divulgation d''informations sensibles dans l''API de gestion.',
-  5.3,
-  'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N',
-  '["VendorD"]',
-  '["ManagementAPI v1.5"]',
-  '{"cve_id": "CVE-2024-0004", "description_text": "Sensitive information disclosure in management API.", "cvss_score_v3": 5.3}'
+-- Table des produits affectés
+CREATE TABLE product (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255),
+  version VARCHAR(255),
+  vendor VARCHAR(255)
 );
+
+-- Liaison CVE ↔ produits
+CREATE TABLE cve_product (
+  cve_id INT,
+  product_id INT,
+  FOREIGN KEY (cve_id) REFERENCES cve(id),
+  FOREIGN KEY (product_id) REFERENCES product(id)
+);
+
+-- Remplissage de la base de données refactorisée avec des exemples réels
+
+-- Sources disponibles
+INSERT INTO source (id, name, url) VALUES
+(1, 'OpenCVE', 'https://www.opencve.io'),
+(2, 'NVD', 'https://nvd.nist.gov');
+
+-- CVE
+INSERT INTO cve (id, cve_id, source_id, published_date, last_modified_date, description, cvss_v3_score, cvss_v3_vector, raw_data) VALUES
+(1, 'CVE-2024-3094', 2, '2024-04-01 10:00:00', '2024-04-01 15:00:00', 'RCE in XZ Utils affecting SSH server communication.', 9.8, 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H', '{"example":true}'),
+(2, 'CVE-2024-22245', 2, '2024-03-10 08:30:00', '2024-03-12 10:00:00', 'VMware Workstation Local Privilege Escalation.', 7.8, 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H', '{"example":true}'),
+(3, 'CVE-2023-4863', 2, '2023-09-11 12:00:00', '2023-09-11 12:00:00', 'Heap buffer overflow in WebP in Google Chrome.', 8.8, 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H', '{"example":true}');
+
+-- Produits
+INSERT INTO product (id, name, version, vendor) VALUES
+(1, 'xz-utils', '5.6.0', 'XZ Project'),
+(2, 'vmware-workstation', '17.5.0', 'VMware'),
+(3, 'libwebp', '1.3.1', 'Google'),
+(4, 'google-chrome', '116.0', 'Google');
+
+-- Liens CVE/Produits
+INSERT INTO cve_product (cve_id, product_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(3, 4);
