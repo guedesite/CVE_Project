@@ -3,19 +3,6 @@
 
 # doit contenir la fonction "fetch" et "save"
 
-# 🔁 CVE Data Normalization
-# All CVE sources (e.g., NVD, Shodan, Nessus) must produce a DataFrame
-# with the following exact columns, in this order:
-#
-# - cve_id       : unique identifier (e.g., CVE-2023-12345)
-# - vendor       : name of the vendor or author of the technology
-# - product      : name of the technology/library affected
-# - version      : affected version ("" if unknown)
-# - description  : short vulnerability summary
-# - severity     : severity level (LOW, MEDIUM, HIGH, CRITICAL or empty string)
-#
-# ⚠️ These column names are mandatory for correct merging and storage
-
 import requests
 import datetime
 import pandas as pd

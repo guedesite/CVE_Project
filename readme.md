@@ -1,10 +1,10 @@
 # CVE Scanner
 
+This project uses a **lightweight, local data lake architecture** to collect and query CVE (Common Vulnerabilities and Exposures) data efficiently without requiring any cloud infrastructure.
+
 ---
 
 ## Data Lake Architecture
-
-This project uses a **lightweight, local data lake architecture** to collect and query CVE (Common Vulnerabilities and Exposures) data efficiently without requiring any cloud infrastructure.
 
 ###  Storage Layer – Apache Parquet
 
@@ -58,14 +58,17 @@ You can find an implementation in  **controller/fetch/data_services_nvd_nist_gov
 
 #### Required Columns:
 
-| Column         | Type     | Description                                                                 |
-|----------------|----------|-----------------------------------------------------------------------------|
-| `cve_id`       | string   | Official CVE identifier (e.g., `CVE-2023-12345`)                            |
-| `vendor`       | string   | Name of the vendor or creator of the affected technology                   |
-| `product`      | string   | Name of the affected technology/library/application                        |
-| `version`      | string   | Affected version (can be empty if unknown or multiple)                     |
-| `description`  | string   | Short summary of the vulnerability                                          |
-| `severity`     | string   | Severity level (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), if available         |
+| Column           | Type     | Description                                                                 |
+|------------------|----------|-----------------------------------------------------------------------------|
+| `cve_id`         | string   | Official CVE identifier (e.g., `CVE-2023-12345`)                          |
+| `vendor`         | string   | Name of the vendor or creator of the affected technology                   |
+| `product`        | string   | Name of the affected technology/library/application                        |
+| `version`        | string   | Affected version (can be empty if unknown or multiple)                     |
+| `description`    | string   | Short summary of the vulnerability                                          |
+| `severity`       | string   | Severity level (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), if available         |
+| `cvss_score`     | float    | Numerical CVSS score (0.0 to 10.0), 0.0 if not available                 |
+| `cvss_version`   | string   | CVSS version used for scoring (`2.0`, `3.0`, `3.1`, `4.0`)                |
+| `published_date` | string   | CVE publication date in YYYY-MM-DD format                                  |
 
 #### Example:
 
