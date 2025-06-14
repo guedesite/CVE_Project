@@ -41,9 +41,6 @@ This project uses a **lightweight, local data lake architecture** to collect and
 
 ---
 
-Souhaites-tu que je traduise cette section en français aussi, ou que je complète avec un schéma d’architecture visuel ?
-
-
 ## Requirements
 
 - Python 3.10
