@@ -1,7 +1,5 @@
 # CVE Scanner
 
-Voici une section que tu peux ajouter dans ton `README.md` pour expliquer la **technologie de data lake utilisée** (locale, simple, efficace) :
-
 ---
 
 ## Data Lake Architecture
