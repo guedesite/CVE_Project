@@ -19,11 +19,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Virtual Environment
-venv/
-ENV/
-.env
+env/
+cve_data.parquet
 
 # IDE
 .idea/

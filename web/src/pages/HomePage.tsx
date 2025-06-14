@@ -1,6 +1,7 @@
 import {Box, Fade} from "@mui/material";
 import {memo, useState} from "react";
 import {ClimbingBoxLoader} from "react-spinners";
+import toast from "react-hot-toast";
 
 interface TCVE {
     cve_id:string,
@@ -99,21 +100,41 @@ export const HomePage = memo(() => {
         setError('');
         setCveResults([]);
 
-        // Simulation du fetch - à remplacer par l'API réelle
-        setTimeout(() => {
-            const [library, version] = searchQuery.split(':');
-            const libraryName = library.trim().toLowerCase();
+        const [library, version] = searchQuery.split(':');
+        const response = await fetch("/getCve", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                cve:[{name:library, version:version}]
+            })
+        });
 
-            const results = mockCVEData[libraryName] || [];
-
-            if (results.length === 0) {
+        if(response.status == 200) {
+            const json = await response.json() as any[];
+            if(json.length == 0) {
                 setError(`Aucune CVE trouvée pour "${searchQuery}"`);
-            } else {
-                setCveResults(results);
+            }else {
+                const output:Array<TCVE> = [];
+                json.forEach((cves:any[]) => {
+                    cves.forEach((cve) => {
+                        output.push({
+                            cve_id: cve.cve_id,
+                            description: cve.description,
+                            articles: [],
+                            score: cve.cvss_score,
+                            published_date: cve.published_date
+                        })
+                    });
+                });
+                setCveResults(output)
             }
+        } else {
+            setError(`Une erreur est survenue pendant la requête.`);
+        }
+        setLoading(false);
 
-            setLoading(false);
-        }, 1500);
     };
 
     const handleKeyPress = (event:any) => {
