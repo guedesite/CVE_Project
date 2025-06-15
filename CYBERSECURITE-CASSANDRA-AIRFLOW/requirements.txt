@@ -1,0 +1,22 @@
+# Apache Airflow et ses dépendances
+apache-airflow
+apache-airflow-providers-postgres
+apache-airflow-providers-redis
+psycopg2-binary
+numpy
+scikit-learn
+imbalanced-learn
+stopwords
+python-dotenv
+pandas
+nltk
+imblearn
+scipy
+matplotlib
+SQLAlchemy
+seaborn
+cassandra-driver
+plyer
+minio
+requests
+

@@ -1,0 +1,133 @@
+services:
+  # Service PostgreSQL pour les métadonnées d'Airflow
+  postgres:
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  # Service MySQL pour charger les données dans la table cible
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: airflow_db
+      MYSQL_USER: airflow_user
+      MYSQL_PASSWORD: airflow_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  # Service Cassandra pour le stockage des données IoT
+  cassandra:
+    image: cassandra:4.0
+    container_name: cassandra_db
+    environment:
+      CASSANDRA_CLUSTER_NAME: "IoTCluster"
+      CASSANDRA_DC: "datacenter1"
+      CASSANDRA_RACK: "rack1"
+      CASSANDRA_SEEDS: "cassandra_db"
+      CASSANDRA_AUTHENTICATOR: PasswordAuthenticator
+      CASSANDRA_AUTHORIZATION: CassandraAuthorizer
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+    networks:
+      - default
+      - monitoring
+
+  # Airflow Webserver
+  airflow-webserver:
+    image: apache/airflow:2.6.3
+    container_name: airflow-webserver
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin
+      AIRFLOW__WEBSERVER__SECRET_KEY: "b10d3c2b94f6d9c4e8384e1a3f5a79a4f3f7a8127ef6a5b3d4f7e9c1a2b3f4d5"
+    ports:
+      - "8081:8080"
+    entrypoint: >
+      /bin/bash -c "
+      pip install --user -r /opt/airflow/requirements.txt &&
+      airflow db init &&
+      airflow webserver"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./requirements.txt:/opt/airflow/requirements.txt
+    networks:
+      - default
+      - monitoring
+      - datanet
+
+  # Airflow Scheduler
+  airflow-scheduler:
+    image: apache/airflow:2.6.3
+    container_name: airflow-scheduler
+    depends_on:
+      - postgres
+      - airflow-webserver
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__WEBSERVER__SECRET_KEY: "b10d3c2b94f6d9c4e8384e1a3f5a79a4f3f7a8127ef6a5b3d4f7e9c1a2b3f4d5"
+      AIRFLOW__SMTP__SMTP_HOST: "smtp.gmail.com"
+      AIRFLOW__SMTP__SMTP_STARTTLS: "True"
+      AIRFLOW__SMTP__SMTP_SSL: "False"
+      AIRFLOW__SMTP__SMTP_USER: "admin"
+      AIRFLOW__SMTP__SMTP_PASSWORD: "medarine672"
+      AIRFLOW__SMTP__SMTP_PORT: "587"
+      AIRFLOW__SMTP__SMTP_MAIL_FROM: "tegonguefolefackf@gmail.com"
+
+    entrypoint: >
+      /bin/bash -c "
+      pip install --user -r /opt/airflow/requirements.txt &&
+      airflow db init &&
+      airflow scheduler"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./requirements.txt:/opt/airflow/requirements.txt
+    networks:
+      - default
+      - monitoring
+      - datanet
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - ./minio/data:/data
+    networks:
+      - datanet
+
+volumes:
+  postgres-data:
+  mysql-data:
+  cassandra-data:
+
+networks:
+  default: {}
+  monitoring:
+    external: true
+  datanet:  # ✅ Ajout de ce réseau manquant
+    driver: bridge
