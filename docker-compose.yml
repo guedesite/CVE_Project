@@ -1,0 +1,118 @@
+x-airflow-common:
+  &airflow-common
+  image: apache/airflow:2.8.0-python3.9
+  environment:
+    &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ./script:/opt/airflow/script
+    - ./requirements.txt:/opt/airflow/requirements.txt  # ✅ ajouté ici
+  depends_on:
+    - postgres
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: >
+      bash -c "
+      python -m pip install --upgrade pip &&
+      pip install --no-cache-dir -r /opt/airflow/requirements.txt &&
+      airflow db init &&
+      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
+      "
+
+  airflow-webserver:
+    <<: *airflow-common
+    ports:
+      - "8088:8080"
+    command: >
+      bash -c "
+      python -m pip install --upgrade pip &&
+      pip install --no-cache-dir -r /opt/airflow/requirements.txt &&
+      airflow webserver"
+    restart: always
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: >
+      bash -c "
+      python -m pip install --upgrade pip &&
+      pip install --no-cache-dir -r /opt/airflow/requirements.txt &&
+      airflow scheduler"
+    restart: always
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: adminpass
+    volumes:
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: adminpass
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: adminpass
+    depends_on:
+      - mongo
+
+  neo4j:
+    image: neo4j:5.14
+    restart: always
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    volumes:
+      - neo4j-data:/data
+
+  selenium:
+    image: selenium/standalone-chrome
+    container_name: selenium
+    ports:
+      - "4444:4444"
+    shm_size: 2g
+
+  scraper:
+    build:
+      context: ./scraper
+      dockerfile: Dockerfile
+    volumes:
+      - ./script:/app/script
+    depends_on:
+      - mongo
+      - neo4j
+      - selenium
+    environment:
+      - PYTHONUNBUFFERED=1
+
+volumes:
+  postgres-db-volume:
+  mongo-data:
+  neo4j-data:

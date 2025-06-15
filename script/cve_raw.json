@@ -1,0 +1,1138 @@
+[
+  {
+    "dataType": "CVE_RECORD",
+    "dataVersion": "5.1",
+    "cveMetadata": {
+      "cveId": "CVE-2024-24576",
+      "assignerOrgId": "a0819718-46f1-4df5-94e2-005712e83aaa",
+      "state": "PUBLISHED",
+      "assignerShortName": "GitHub_M",
+      "dateReserved": "2024-01-25T15:09:40.211Z",
+      "datePublished": "2024-04-09T17:28:41.800Z",
+      "dateUpdated": "2025-02-26T18:38:58.221Z"
+    },
+    "containers": {
+      "cna": {
+        "title": "Rusts's `std::process::Command` did not properly escape arguments of batch files on Windows",
+        "problemTypes": [
+          {
+            "descriptions": [
+              {
+                "cweId": "CWE-78",
+                "lang": "en",
+                "description": "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+                "type": "CWE"
+              }
+            ]
+          },
+          {
+            "descriptions": [
+              {
+                "cweId": "CWE-88",
+                "lang": "en",
+                "description": "CWE-88: Improper Neutralization of Argument Delimiters in a Command ('Argument Injection')",
+                "type": "CWE"
+              }
+            ]
+          }
+        ],
+        "metrics": [
+          {
+            "cvssV3_1": {
+              "attackComplexity": "LOW",
+              "attackVector": "NETWORK",
+              "availabilityImpact": "HIGH",
+              "baseScore": 10,
+              "baseSeverity": "CRITICAL",
+              "confidentialityImpact": "HIGH",
+              "integrityImpact": "HIGH",
+              "privilegesRequired": "NONE",
+              "scope": "CHANGED",
+              "userInteraction": "NONE",
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+              "version": "3.1"
+            }
+          }
+        ],
+        "references": [
+          {
+            "name": "https://github.com/rust-lang/rust/security/advisories/GHSA-q455-m56c-85mh",
+            "tags": [
+              "x_refsource_CONFIRM"
+            ],
+            "url": "https://github.com/rust-lang/rust/security/advisories/GHSA-q455-m56c-85mh"
+          },
+          {
+            "name": "https://doc.rust-lang.org/std/io/enum.ErrorKind.html#variant.InvalidInput",
+            "tags": [
+              "x_refsource_MISC"
+            ],
+            "url": "https://doc.rust-lang.org/std/io/enum.ErrorKind.html#variant.InvalidInput"
+          },
+          {
+            "name": "https://doc.rust-lang.org/std/os/windows/process/trait.CommandExt.html#tymethod.raw_arg",
+            "tags": [
+              "x_refsource_MISC"
+            ],
+            "url": "https://doc.rust-lang.org/std/os/windows/process/trait.CommandExt.html#tymethod.raw_arg"
+          },
+          {
+            "name": "https://doc.rust-lang.org/std/process/struct.Command.html",
+            "tags": [
+              "x_refsource_MISC"
+            ],
+            "url": "https://doc.rust-lang.org/std/process/struct.Command.html"
+          },
+          {
+            "name": "https://doc.rust-lang.org/std/process/struct.Command.html#method.arg",
+            "tags": [
+              "x_refsource_MISC"
+            ],
+            "url": "https://doc.rust-lang.org/std/process/struct.Command.html#method.arg"
+          },
+          {
+            "name": "https://doc.rust-lang.org/std/process/struct.Command.html#method.args",
+            "tags": [
+              "x_refsource_MISC"
+            ],
+            "url": "https://doc.rust-lang.org/std/process/struct.Command.html#method.args"
+          },
+          {
+            "name": "https://github.com/rust-lang/rust/issues",
+            "tags": [
+              "x_refsource_MISC"
+            ],
+            "url": "https://github.com/rust-lang/rust/issues"
+          },
+          {
+            "name": "https://www.rust-lang.org/policies/security",
+            "tags": [
+              "x_refsource_MISC"
+            ],
+            "url": "https://www.rust-lang.org/policies/security"
+          },
+          {
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/W7WRFOIAZXYUPGXGR5UEEW7VTTOD4SZ3/"
+          },
+          {
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/RPH3PF7DVSS2LVIRLW254VWUPVKJN46P/"
+          },
+          {
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/N323QAEEUVTJ354BTVQ7UB6LYXUX2BCL/"
+          },
+          {
+            "url": "http://www.openwall.com/lists/oss-security/2024/04/09/16"
+          }
+        ],
+        "affected": [
+          {
+            "vendor": "rust-lang",
+            "product": "rust",
+            "versions": [
+              {
+                "version": "< 1.77.2",
+                "status": "affected"
+              }
+            ]
+          }
+        ],
+        "providerMetadata": {
+          "orgId": "a0819718-46f1-4df5-94e2-005712e83aaa",
+          "shortName": "GitHub_M",
+          "dateUpdated": "2024-05-01T18:11:50.241Z"
+        },
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "Rust is a programming language. The Rust Security Response WG was notified that the Rust standard library prior to version 1.77.2 did not properly escape arguments when invoking batch files (with the `bat` and `cmd` extensions) on Windows using the `Command`. An attacker able to control the arguments passed to the spawned process could execute arbitrary shell commands by bypassing the escaping. The severity of this vulnerability is critical for those who invoke batch files on Windows with untrusted arguments. No other platform or use is affected.\n\nThe `Command::arg` and `Command::args` APIs state in their documentation that the arguments will be passed to the spawned process as-is, regardless of the content of the arguments, and will not be evaluated by a shell. This means it should be safe to pass untrusted input as an argument.\n\nOn Windows, the implementation of this is more complex than other platforms, because the Windows API only provides a single string containing all the arguments to the spawned process, and it's up to the spawned process to split them. Most programs use the standard C run-time argv, which in practice results in a mostly consistent way arguments are splitted.\n\nOne exception though is `cmd.exe` (used among other things to execute batch files), which has its own argument splitting logic. That forces the standard library to implement custom escaping for arguments passed to batch files. Unfortunately it was reported that our escaping logic was not thorough enough, and it was possible to pass malicious arguments that would result in arbitrary shell execution.\n\nDue to the complexity of `cmd.exe`, we didn't identify a solution that would correctly escape arguments in all cases. To maintain our API guarantees, we improved the robustness of the escaping code, and changed the `Command` API to return an `InvalidInput` error when it cannot safely escape an argument. This error will be emitted when spawning the process.\n\nThe fix is included in Rust 1.77.2. Note that the new escaping logic for batch files errs on the conservative side, and could reject valid arguments. Those who implement the escaping themselves or only handle trusted inputs on Windows can also use the `CommandExt::raw_arg` method to bypass the standard library's escaping logic."
+          }
+        ],
+        "source": {
+          "advisory": "GHSA-q455-m56c-85mh",
+          "discovery": "UNKNOWN"
+        }
+      },
+      "adp": [
+        {
+          "affected": [
+            {
+              "vendor": "rust-lang",
+              "product": "rust",
+              "cpes": [
+                "cpe:2.3:a:rust-lang:rust:*:*:*:*:*:*:*:*"
+              ],
+              "defaultStatus": "affected",
+              "versions": [
+                {
+                  "version": "0",
+                  "status": "affected",
+                  "lessThan": "1.77.2",
+                  "versionType": "semver"
+                }
+              ]
+            }
+          ],
+          "metrics": [
+            {
+              "other": {
+                "type": "ssvc",
+                "content": {
+                  "timestamp": "2025-02-26T18:38:35.986544Z",
+                  "id": "CVE-2024-24576",
+                  "options": [
+                    {
+                      "Exploitation": "poc"
+                    },
+                    {
+                      "Automatable": "yes"
+                    },
+                    {
+                      "Technical Impact": "total"
+                    }
+                  ],
+                  "role": "CISA Coordinator",
+                  "version": "2.0.3"
+                }
+              }
+            }
+          ],
+          "title": "CISA ADP Vulnrichment",
+          "providerMetadata": {
+            "orgId": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
+            "shortName": "CISA-ADP",
+            "dateUpdated": "2025-02-26T18:38:58.221Z"
+          }
+        },
+        {
+          "providerMetadata": {
+            "orgId": "af854a3a-2127-422b-91ae-364da2661108",
+            "shortName": "CVE",
+            "dateUpdated": "2024-08-01T23:19:52.921Z"
+          },
+          "title": "CVE Program Container",
+          "references": [
+            {
+              "name": "https://github.com/rust-lang/rust/security/advisories/GHSA-q455-m56c-85mh",
+              "tags": [
+                "x_refsource_CONFIRM",
+                "x_transferred"
+              ],
+              "url": "https://github.com/rust-lang/rust/security/advisories/GHSA-q455-m56c-85mh"
+            },
+            {
+              "name": "https://doc.rust-lang.org/std/io/enum.ErrorKind.html#variant.InvalidInput",
+              "tags": [
+                "x_refsource_MISC",
+                "x_transferred"
+              ],
+              "url": "https://doc.rust-lang.org/std/io/enum.ErrorKind.html#variant.InvalidInput"
+            },
+            {
+              "name": "https://doc.rust-lang.org/std/os/windows/process/trait.CommandExt.html#tymethod.raw_arg",
+              "tags": [
+                "x_refsource_MISC",
+                "x_transferred"
+              ],
+              "url": "https://doc.rust-lang.org/std/os/windows/process/trait.CommandExt.html#tymethod.raw_arg"
+            },
+            {
+              "name": "https://doc.rust-lang.org/std/process/struct.Command.html",
+              "tags": [
+                "x_refsource_MISC",
+                "x_transferred"
+              ],
+              "url": "https://doc.rust-lang.org/std/process/struct.Command.html"
+            },
+            {
+              "name": "https://doc.rust-lang.org/std/process/struct.Command.html#method.arg",
+              "tags": [
+                "x_refsource_MISC",
+                "x_transferred"
+              ],
+              "url": "https://doc.rust-lang.org/std/process/struct.Command.html#method.arg"
+            },
+            {
+              "name": "https://doc.rust-lang.org/std/process/struct.Command.html#method.args",
+              "tags": [
+                "x_refsource_MISC",
+                "x_transferred"
+              ],
+              "url": "https://doc.rust-lang.org/std/process/struct.Command.html#method.args"
+            },
+            {
+              "name": "https://github.com/rust-lang/rust/issues",
+              "tags": [
+                "x_refsource_MISC",
+                "x_transferred"
+              ],
+              "url": "https://github.com/rust-lang/rust/issues"
+            },
+            {
+              "name": "https://www.rust-lang.org/policies/security",
+              "tags": [
+                "x_refsource_MISC",
+                "x_transferred"
+              ],
+              "url": "https://www.rust-lang.org/policies/security"
+            },
+            {
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/W7WRFOIAZXYUPGXGR5UEEW7VTTOD4SZ3/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/RPH3PF7DVSS2LVIRLW254VWUPVKJN46P/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/N323QAEEUVTJ354BTVQ7UB6LYXUX2BCL/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "http://www.openwall.com/lists/oss-security/2024/04/09/16",
+              "tags": [
+                "x_transferred"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "dataType": "CVE_RECORD",
+    "dataVersion": "5.1",
+    "cveMetadata": {
+      "cveId": "CVE-2025-5419",
+      "assignerOrgId": "ebfee0ef-53dd-4cf3-9e2a-08a5bd7a7e28",
+      "state": "PUBLISHED",
+      "assignerShortName": "Chrome",
+      "dateReserved": "2025-06-01T03:56:54.592Z",
+      "datePublished": "2025-06-02T23:36:53.221Z",
+      "dateUpdated": "2025-06-10T16:15:58.433Z"
+    },
+    "containers": {
+      "cna": {
+        "affected": [
+          {
+            "vendor": "Google",
+            "product": "Chrome",
+            "versions": [
+              {
+                "version": "137.0.7151.68",
+                "status": "affected",
+                "lessThan": "137.0.7151.68",
+                "versionType": "custom"
+              }
+            ]
+          }
+        ],
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "Out of bounds read and write in V8 in Google Chrome prior to 137.0.7151.68 allowed a remote attacker to potentially exploit heap corruption via a crafted HTML page. (Chromium security severity: High)"
+          }
+        ],
+        "problemTypes": [
+          {
+            "descriptions": [
+              {
+                "lang": "en",
+                "description": "Out of bounds read and write"
+              }
+            ]
+          }
+        ],
+        "providerMetadata": {
+          "orgId": "ebfee0ef-53dd-4cf3-9e2a-08a5bd7a7e28",
+          "shortName": "Chrome",
+          "dateUpdated": "2025-06-02T23:36:53.221Z"
+        },
+        "references": [
+          {
+            "url": "https://chromereleases.googleblog.com/2025/06/stable-channel-update-for-desktop.html"
+          },
+          {
+            "url": "https://issues.chromium.org/issues/420636529"
+          }
+        ]
+      },
+      "adp": [
+        {
+          "problemTypes": [
+            {
+              "descriptions": [
+                {
+                  "type": "CWE",
+                  "cweId": "CWE-787",
+                  "lang": "en",
+                  "description": "CWE-787 Out-of-bounds Write"
+                }
+              ]
+            },
+            {
+              "descriptions": [
+                {
+                  "type": "CWE",
+                  "cweId": "CWE-125",
+                  "lang": "en",
+                  "description": "CWE-125 Out-of-bounds Read"
+                }
+              ]
+            }
+          ],
+          "metrics": [
+            {
+              "cvssV3_1": {
+                "scope": "UNCHANGED",
+                "version": "3.1",
+                "baseScore": 8.8,
+                "attackVector": "NETWORK",
+                "baseSeverity": "HIGH",
+                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+                "integrityImpact": "HIGH",
+                "userInteraction": "REQUIRED",
+                "attackComplexity": "LOW",
+                "availabilityImpact": "HIGH",
+                "privilegesRequired": "NONE",
+                "confidentialityImpact": "HIGH"
+              }
+            },
+            {
+              "other": {
+                "type": "ssvc",
+                "content": {
+                  "timestamp": "2025-06-05T20:00:38.070050Z",
+                  "id": "CVE-2025-5419",
+                  "options": [
+                    {
+                      "Exploitation": "active"
+                    },
+                    {
+                      "Automatable": "no"
+                    },
+                    {
+                      "Technical Impact": "total"
+                    }
+                  ],
+                  "role": "CISA Coordinator",
+                  "version": "2.0.3"
+                }
+              }
+            },
+            {
+              "other": {
+                "type": "kev",
+                "content": {
+                  "dateAdded": "2025-06-05",
+                  "reference": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+                }
+              }
+            }
+          ],
+          "title": "CISA ADP Vulnrichment",
+          "providerMetadata": {
+            "orgId": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
+            "shortName": "CISA-ADP",
+            "dateUpdated": "2025-06-10T16:15:58.433Z"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "dataType": "CVE_RECORD",
+    "dataVersion": "5.1",
+    "cveMetadata": {
+      "cveId": "CVE-2022-40982",
+      "assignerOrgId": "6dda929c-bb53-4a77-a76d-48e79601a1ce",
+      "state": "PUBLISHED",
+      "assignerShortName": "intel",
+      "dateReserved": "2022-09-27T00:28:29.203Z",
+      "datePublished": "2023-08-11T02:37:05.423Z",
+      "dateUpdated": "2025-02-13T16:33:03.126Z"
+    },
+    "containers": {
+      "cna": {
+        "providerMetadata": {
+          "orgId": "6dda929c-bb53-4a77-a76d-48e79601a1ce",
+          "shortName": "intel",
+          "dateUpdated": "2023-08-27T02:06:52.425Z"
+        },
+        "problemTypes": [
+          {
+            "descriptions": [
+              {
+                "lang": "en",
+                "description": "information disclosure"
+              },
+              {
+                "lang": "en",
+                "description": "Information exposure through microarchitectural state after transient execution",
+                "cweId": "CWE-1342",
+                "type": "CWE"
+              }
+            ]
+          }
+        ],
+        "affected": [
+          {
+            "vendor": "n/a",
+            "product": "Intel(R) Processors",
+            "versions": [
+              {
+                "version": "See references",
+                "status": "affected"
+              }
+            ],
+            "defaultStatus": "unaffected"
+          }
+        ],
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "Information exposure through microarchitectural state after transient execution in certain vector execution units for some Intel(R) Processors may allow an authenticated user to potentially enable information disclosure via local access."
+          }
+        ],
+        "references": [
+          {
+            "name": "http://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00828.html",
+            "url": "http://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00828.html"
+          },
+          {
+            "url": "https://downfall.page"
+          },
+          {
+            "url": "https://aws.amazon.com/security/security-bulletins/AWS-2023-007/"
+          },
+          {
+            "url": "https://access.redhat.com/solutions/7027704"
+          },
+          {
+            "url": "https://xenbits.xen.org/xsa/advisory-435.html"
+          },
+          {
+            "url": "https://lists.debian.org/debian-lts-announce/2023/08/msg00013.html"
+          },
+          {
+            "url": "https://security.netapp.com/advisory/ntap-20230811-0001/"
+          },
+          {
+            "url": "https://www.debian.org/security/2023/dsa-5474"
+          },
+          {
+            "url": "https://www.debian.org/security/2023/dsa-5475"
+          },
+          {
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/T7WO5JM74YJSYAE5RBV4DC6A4YLEKWLF/"
+          },
+          {
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/OL7WI2TJCWSZIQP2RIOLWHOKLM25M44J/"
+          },
+          {
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/HKREYYTWUY7ZDNIB2N6H5BUJ3LE5VZPE/"
+          },
+          {
+            "url": "https://lists.debian.org/debian-lts-announce/2023/08/msg00026.html"
+          },
+          {
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/HKKYIK2EASDNUV4I7EFJKNBVO3KCKGRR/"
+          }
+        ],
+        "metrics": [
+          {
+            "format": "CVSS",
+            "scenarios": [
+              {
+                "lang": "en",
+                "value": "GENERAL"
+              }
+            ],
+            "cvssV3_1": {
+              "version": "3.1",
+              "baseScore": 6.5,
+              "baseSeverity": "MEDIUM",
+              "vectorString": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:C/C:H/I:N/A:N",
+              "attackVector": "LOCAL",
+              "attackComplexity": "LOW",
+              "privilegesRequired": "LOW",
+              "userInteraction": "NONE",
+              "scope": "CHANGED",
+              "confidentialityImpact": "HIGH",
+              "integrityImpact": "NONE",
+              "availabilityImpact": "NONE"
+            }
+          }
+        ]
+      },
+      "adp": [
+        {
+          "title": "CVE Program Container",
+          "references": [
+            {
+              "url": "http://xenbits.xen.org/xsa/advisory-435.html"
+            },
+            {
+              "name": "http://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00828.html",
+              "url": "http://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00828.html",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://downfall.page",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://aws.amazon.com/security/security-bulletins/AWS-2023-007/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://access.redhat.com/solutions/7027704",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://xenbits.xen.org/xsa/advisory-435.html",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://lists.debian.org/debian-lts-announce/2023/08/msg00013.html",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://security.netapp.com/advisory/ntap-20230811-0001/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://www.debian.org/security/2023/dsa-5474",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://www.debian.org/security/2023/dsa-5475",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/T7WO5JM74YJSYAE5RBV4DC6A4YLEKWLF/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/OL7WI2TJCWSZIQP2RIOLWHOKLM25M44J/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/HKREYYTWUY7ZDNIB2N6H5BUJ3LE5VZPE/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://lists.debian.org/debian-lts-announce/2023/08/msg00026.html",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/HKKYIK2EASDNUV4I7EFJKNBVO3KCKGRR/",
+              "tags": [
+                "x_transferred"
+              ]
+            }
+          ],
+          "providerMetadata": {
+            "orgId": "af854a3a-2127-422b-91ae-364da2661108",
+            "shortName": "CVE",
+            "dateUpdated": "2024-08-03T12:28:42.939Z"
+          }
+        },
+        {
+          "metrics": [
+            {
+              "other": {
+                "type": "ssvc",
+                "content": {
+                  "timestamp": "2024-07-31T20:33:43.011314Z",
+                  "id": "CVE-2022-40982",
+                  "options": [
+                    {
+                      "Exploitation": "none"
+                    },
+                    {
+                      "Automatable": "no"
+                    },
+                    {
+                      "Technical Impact": "partial"
+                    }
+                  ],
+                  "role": "CISA Coordinator",
+                  "version": "2.0.3"
+                }
+              }
+            }
+          ],
+          "title": "CISA ADP Vulnrichment",
+          "providerMetadata": {
+            "orgId": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
+            "shortName": "CISA-ADP",
+            "dateUpdated": "2024-07-31T20:43:52.375Z"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "dataType": "CVE_RECORD",
+    "cveMetadata": {
+      "state": "PUBLISHED",
+      "cveId": "CVE-2024-31497",
+      "assignerOrgId": "8254265b-2729-46b6-b9e3-3dfca2d5bfca",
+      "assignerShortName": "mitre",
+      "dateUpdated": "2025-03-27T14:54:48.048Z",
+      "dateReserved": "2024-04-04T00:00:00.000Z",
+      "datePublished": "2024-04-15T00:00:00.000Z"
+    },
+    "containers": {
+      "cna": {
+        "providerMetadata": {
+          "orgId": "8254265b-2729-46b6-b9e3-3dfca2d5bfca",
+          "shortName": "mitre",
+          "dateUpdated": "2024-06-20T19:05:59.509Z"
+        },
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "In PuTTY 0.68 through 0.80 before 0.81, biased ECDSA nonce generation allows an attacker to recover a user's NIST P-521 secret key via a quick attack in approximately 60 signatures. This is especially important in a scenario where an adversary is able to read messages signed by PuTTY or Pageant. The required set of signed messages may be publicly readable because they are stored in a public Git service that supports use of SSH for commit signing, and the signatures were made by Pageant through an agent-forwarding mechanism. In other words, an adversary may already have enough signature information to compromise a victim's private key, even if there is no further use of vulnerable PuTTY versions. After a key compromise, an adversary may be able to conduct supply-chain attacks on software maintained in Git. A second, independent scenario is that the adversary is an operator of an SSH server to which the victim authenticates (for remote login or file copy), even though this server is not fully trusted by the victim, and the victim uses the same private key for SSH connections to other services operated by other entities. Here, the rogue server operator (who would otherwise have no way to determine the victim's private key) can derive the victim's private key, and then use it for unauthorized access to those other services. If the other services include Git services, then again it may be possible to conduct supply-chain attacks on software maintained in Git. This also affects, for example, FileZilla before 3.67.0, WinSCP before 6.3.3, TortoiseGit before 2.15.0.1, and TortoiseSVN through 1.14.6."
+          }
+        ],
+        "affected": [
+          {
+            "vendor": "n/a",
+            "product": "n/a",
+            "versions": [
+              {
+                "version": "n/a",
+                "status": "affected"
+              }
+            ]
+          }
+        ],
+        "references": [
+          {
+            "url": "https://www.chiark.greenend.org.uk/~sgtatham/putty/changes.html"
+          },
+          {
+            "url": "https://filezilla-project.org/versions.php"
+          },
+          {
+            "url": "https://www.chiark.greenend.org.uk/~sgtatham/putty/wishlist/vuln-p521-bias.html"
+          },
+          {
+            "url": "https://www.openwall.com/lists/oss-security/2024/04/15/6"
+          },
+          {
+            "url": "https://tartarus.org/~simon/putty-snapshots/htmldoc/Chapter9.html#pageant-forward"
+          },
+          {
+            "url": "https://docs.ccv.brown.edu/oscar/connecting-to-oscar/ssh/ssh-agent-forwarding/key-generation-and-agent-forwarding-with-putty"
+          },
+          {
+            "url": "https://news.ycombinator.com/item?id=40044665"
+          },
+          {
+            "url": "https://winscp.net/eng/news.php"
+          },
+          {
+            "url": "https://tortoisegit.org"
+          },
+          {
+            "url": "https://github.com/advisories/GHSA-6p4c-r453-8743"
+          },
+          {
+            "url": "https://bugzilla.redhat.com/show_bug.cgi?id=2275183"
+          },
+          {
+            "url": "https://bugzilla.suse.com/show_bug.cgi?id=1222864"
+          },
+          {
+            "url": "https://security-tracker.debian.org/tracker/CVE-2024-31497"
+          },
+          {
+            "url": "https://twitter.com/lambdafu/status/1779969509522133272"
+          },
+          {
+            "url": "https://git.tartarus.org/?h=c193fe9848f50a88a4089aac647fecc31ae96d27&p=simon/putty.git"
+          },
+          {
+            "url": "https://www.reddit.com/r/sysadmin/comments/1c4wmoj/putty_vulnerability_affecting_v068_to_v08/"
+          },
+          {
+            "url": "https://github.com/daedalus/BreakingECDSAwithLLL"
+          },
+          {
+            "url": "https://www.bleepingcomputer.com/news/security/putty-ssh-client-flaw-allows-recovery-of-cryptographic-private-keys/"
+          },
+          {
+            "url": "https://twitter.com/CCBalert/status/1780229237569470549"
+          },
+          {
+            "url": "https://securityonline.info/cve-2024-31497-critical-putty-vulnerability-exposes-private-keys-immediate-action-required/"
+          },
+          {
+            "name": "FEDORA-2024-8401d42de6",
+            "tags": [
+              "vendor-advisory"
+            ],
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/WMJH7M663BVO3SY6MFAW2FAZWLLXAPRQ/"
+          },
+          {
+            "name": "FEDORA-2024-ff9a2fb31c",
+            "tags": [
+              "vendor-advisory"
+            ],
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/MMHILY2K7HQGQRHOC375KRRG2M6625RD/"
+          },
+          {
+            "name": "FEDORA-2024-0489e7ba1e",
+            "tags": [
+              "vendor-advisory"
+            ],
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/IZS3B37GNGWOOV7QU7B7JFK76U4TOP4V/"
+          },
+          {
+            "name": "FEDORA-2024-08a4a5ead8",
+            "tags": [
+              "vendor-advisory"
+            ],
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/WFDZBV7ZCAZ6AH3VCQ34SSY7L3J7VZXZ/"
+          },
+          {
+            "name": "FEDORA-2024-cba85cc558",
+            "tags": [
+              "vendor-advisory"
+            ],
+            "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/PUOTQVGC4DISVHQGSPUYGXO6TLDK65LA/"
+          },
+          {
+            "name": "[oss-security] 20240415 CVE-2024-31497: Secret Key Recovery of NIST P-521 Private Keys Through Biased ECDSA Nonces in PuTTY Client",
+            "tags": [
+              "mailing-list"
+            ],
+            "url": "http://www.openwall.com/lists/oss-security/2024/04/15/6"
+          },
+          {
+            "name": "[debian-lts-announce] 20240620 [SECURITY] [DLA 3839-1] putty security update",
+            "tags": [
+              "mailing-list"
+            ],
+            "url": "https://lists.debian.org/debian-lts-announce/2024/06/msg00014.html"
+          }
+        ],
+        "problemTypes": [
+          {
+            "descriptions": [
+              {
+                "type": "text",
+                "lang": "en",
+                "description": "n/a"
+              }
+            ]
+          }
+        ]
+      },
+      "adp": [
+        {
+          "problemTypes": [
+            {
+              "descriptions": [
+                {
+                  "type": "CWE",
+                  "cweId": "CWE-338",
+                  "lang": "en",
+                  "description": "CWE-338 Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)"
+                }
+              ]
+            }
+          ],
+          "affected": [
+            {
+              "vendor": "putty",
+              "product": "putty",
+              "cpes": [
+                "cpe:2.3:a:putty:putty:-:*:*:*:*:*:*:*"
+              ],
+              "defaultStatus": "unknown",
+              "versions": [
+                {
+                  "version": "0.68",
+                  "status": "affected",
+                  "lessThan": "0.81",
+                  "versionType": "semver"
+                }
+              ]
+            }
+          ],
+          "metrics": [
+            {
+              "cvssV3_1": {
+                "scope": "UNCHANGED",
+                "version": "3.1",
+                "baseScore": 5.9,
+                "attackVector": "NETWORK",
+                "baseSeverity": "MEDIUM",
+                "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                "integrityImpact": "NONE",
+                "userInteraction": "NONE",
+                "attackComplexity": "HIGH",
+                "availabilityImpact": "NONE",
+                "privilegesRequired": "NONE",
+                "confidentialityImpact": "HIGH"
+              }
+            },
+            {
+              "other": {
+                "type": "ssvc",
+                "content": {
+                  "timestamp": "2024-04-19T04:01:10.059065Z",
+                  "id": "CVE-2024-31497",
+                  "options": [
+                    {
+                      "Exploitation": "none"
+                    },
+                    {
+                      "Automatable": "no"
+                    },
+                    {
+                      "Technical Impact": "partial"
+                    }
+                  ],
+                  "role": "CISA Coordinator",
+                  "version": "2.0.3"
+                }
+              }
+            }
+          ],
+          "title": "CISA ADP Vulnrichment",
+          "providerMetadata": {
+            "orgId": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
+            "shortName": "CISA-ADP",
+            "dateUpdated": "2025-03-27T14:54:48.048Z"
+          }
+        },
+        {
+          "providerMetadata": {
+            "orgId": "af854a3a-2127-422b-91ae-364da2661108",
+            "shortName": "CVE",
+            "dateUpdated": "2024-08-19T07:48:01.287Z"
+          },
+          "title": "CVE Program Container",
+          "references": [
+            {
+              "url": "https://www.chiark.greenend.org.uk/~sgtatham/putty/changes.html",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://filezilla-project.org/versions.php",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://www.chiark.greenend.org.uk/~sgtatham/putty/wishlist/vuln-p521-bias.html",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://www.openwall.com/lists/oss-security/2024/04/15/6",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://tartarus.org/~simon/putty-snapshots/htmldoc/Chapter9.html#pageant-forward",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://docs.ccv.brown.edu/oscar/connecting-to-oscar/ssh/ssh-agent-forwarding/key-generation-and-agent-forwarding-with-putty",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=40044665",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://winscp.net/eng/news.php",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://tortoisegit.org",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://github.com/advisories/GHSA-6p4c-r453-8743",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://bugzilla.redhat.com/show_bug.cgi?id=2275183",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://bugzilla.suse.com/show_bug.cgi?id=1222864",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://security-tracker.debian.org/tracker/CVE-2024-31497",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://twitter.com/lambdafu/status/1779969509522133272",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://git.tartarus.org/?h=c193fe9848f50a88a4089aac647fecc31ae96d27&p=simon/putty.git",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://www.reddit.com/r/sysadmin/comments/1c4wmoj/putty_vulnerability_affecting_v068_to_v08/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://github.com/daedalus/BreakingECDSAwithLLL",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://www.bleepingcomputer.com/news/security/putty-ssh-client-flaw-allows-recovery-of-cryptographic-private-keys/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://twitter.com/CCBalert/status/1780229237569470549",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "url": "https://securityonline.info/cve-2024-31497-critical-putty-vulnerability-exposes-private-keys-immediate-action-required/",
+              "tags": [
+                "x_transferred"
+              ]
+            },
+            {
+              "name": "FEDORA-2024-8401d42de6",
+              "tags": [
+                "vendor-advisory",
+                "x_transferred"
+              ],
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/WMJH7M663BVO3SY6MFAW2FAZWLLXAPRQ/"
+            },
+            {
+              "name": "FEDORA-2024-ff9a2fb31c",
+              "tags": [
+                "vendor-advisory",
+                "x_transferred"
+              ],
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/MMHILY2K7HQGQRHOC375KRRG2M6625RD/"
+            },
+            {
+              "name": "FEDORA-2024-0489e7ba1e",
+              "tags": [
+                "vendor-advisory",
+                "x_transferred"
+              ],
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/IZS3B37GNGWOOV7QU7B7JFK76U4TOP4V/"
+            },
+            {
+              "name": "FEDORA-2024-08a4a5ead8",
+              "tags": [
+                "vendor-advisory",
+                "x_transferred"
+              ],
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/WFDZBV7ZCAZ6AH3VCQ34SSY7L3J7VZXZ/"
+            },
+            {
+              "name": "FEDORA-2024-cba85cc558",
+              "tags": [
+                "vendor-advisory",
+                "x_transferred"
+              ],
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/PUOTQVGC4DISVHQGSPUYGXO6TLDK65LA/"
+            },
+            {
+              "name": "[oss-security] 20240415 CVE-2024-31497: Secret Key Recovery of NIST P-521 Private Keys Through Biased ECDSA Nonces in PuTTY Client",
+              "tags": [
+                "mailing-list",
+                "x_transferred"
+              ],
+              "url": "http://www.openwall.com/lists/oss-security/2024/04/15/6"
+            },
+            {
+              "name": "[debian-lts-announce] 20240620 [SECURITY] [DLA 3839-1] putty security update",
+              "tags": [
+                "mailing-list",
+                "x_transferred"
+              ],
+              "url": "https://lists.debian.org/debian-lts-announce/2024/06/msg00014.html"
+            },
+            {
+              "url": "https://www.vicarius.io/vsociety/posts/understanding-a-critical-vulnerability-in-putty-biased-ecdsa-nonce-generation-revealing-nist-p-521-private-keys-cve-2024-31497"
+            }
+          ]
+        }
+      ]
+    },
+    "dataVersion": "5.1"
+  }
+]

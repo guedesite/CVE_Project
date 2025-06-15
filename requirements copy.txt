@@ -1,0 +1,7 @@
+selenium
+neo4j
+beautifulsoup4
+requests
+lxml
+pymongo
+pandas

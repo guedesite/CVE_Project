@@ -1,0 +1,62 @@
+[
+  {
+    "ID_CVE": "CVE-2024-24576",
+    "Produit": "rust",
+    "Version": [
+      "< 1.77.2"
+    ],
+    "Description": "Rust is a programming language. The Rust Security Response WG was notified that the Rust standard library prior to version 1.77.2 did not properly escape arguments when invoking batch files (with the `bat` and `cmd` extensions) on Windows using the `Command`. An attacker able to control the arguments passed to the spawned process could execute arbitrary shell commands by bypassing the escaping. The severity of this vulnerability is critical for those who invoke batch files on Windows with untrusted arguments. No other platform or use is affected.\n\nThe `Command::arg` and `Command::args` APIs state in their documentation that the arguments will be passed to the spawned process as-is, regardless of the content of the arguments, and will not be evaluated by a shell. This means it should be safe to pass untrusted input as an argument.\n\nOn Windows, the implementation of this is more complex than other platforms, because the Windows API only provides a single string containing all the arguments to the spawned process, and it's up to the spawned process to split them. Most programs use the standard C run-time argv, which in practice results in a mostly consistent way arguments are splitted.\n\nOne exception though is `cmd.exe` (used among other things to execute batch files), which has its own argument splitting logic. That forces the standard library to implement custom escaping for arguments passed to batch files. Unfortunately it was reported that our escaping logic was not thorough enough, and it was possible to pass malicious arguments that would result in arbitrary shell execution.\n\nDue to the complexity of `cmd.exe`, we didn't identify a solution that would correctly escape arguments in all cases. To maintain our API guarantees, we improved the robustness of the escaping code, and changed the `Command` API to return an `InvalidInput` error when it cannot safely escape an argument. This error will be emitted when spawning the process.\n\nThe fix is included in Rust 1.77.2. Note that the new escaping logic for batch files errs on the conservative side, and could reject valid arguments. Those who implement the escaping themselves or only handle trusted inputs on Windows can also use the `CommandExt::raw_arg` method to bypass the standard library's escaping logic.",
+    "Score_CVSS": 0,
+    "Niveau_Risque": "Inconnu",
+    "Date_Publication": "2024-04-09",
+    "Patch_Disponible": "Non",
+    "URL_Reference": "https://github.com/rust-lang/rust/security/advisories/GHSA-q455-m56c-85mh",
+    "Type_Faille": "CWE-88: Improper Neutralization of Argument Delimiters in a Command ('Argument Injection')",
+    "Statut_Analyse": "Non analys\u00e9"
+  },
+  {
+    "ID_CVE": "CVE-2025-5419",
+    "Produit": "Chrome",
+    "Version": [
+      "137.0.7151.68"
+    ],
+    "Description": "Out of bounds read and write in V8 in Google Chrome prior to 137.0.7151.68 allowed a remote attacker to potentially exploit heap corruption via a crafted HTML page. (Chromium security severity: High)",
+    "Score_CVSS": 8.8,
+    "Niveau_Risque": "\u00c9lev\u00e9",
+    "Date_Publication": "2025-06-02",
+    "Patch_Disponible": "Non",
+    "URL_Reference": "https://chromereleases.googleblog.com/2025/06/stable-channel-update-for-desktop.html",
+    "Type_Faille": "Non d\u00e9fini",
+    "Statut_Analyse": "Non analys\u00e9"
+  },
+  {
+    "ID_CVE": "CVE-2022-40982",
+    "Produit": "Intel(R) Processors",
+    "Version": [
+      "See references"
+    ],
+    "Description": "Information exposure through microarchitectural state after transient execution in certain vector execution units for some Intel(R) Processors may allow an authenticated user to potentially enable information disclosure via local access.",
+    "Score_CVSS": 0,
+    "Niveau_Risque": "Inconnu",
+    "Date_Publication": "2023-08-11",
+    "Patch_Disponible": "Non",
+    "URL_Reference": "http://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00828.html",
+    "Type_Faille": "Information exposure through microarchitectural state after transient execution",
+    "Statut_Analyse": "Non analys\u00e9"
+  },
+  {
+    "ID_CVE": "CVE-2024-31497",
+    "Produit": "n/a",
+    "Version": [
+      "n/a"
+    ],
+    "Description": "In PuTTY 0.68 through 0.80 before 0.81, biased ECDSA nonce generation allows an attacker to recover a user's NIST P-521 secret key via a quick attack in approximately 60 signatures. This is especially important in a scenario where an adversary is able to read messages signed by PuTTY or Pageant. The required set of signed messages may be publicly readable because they are stored in a public Git service that supports use of SSH for commit signing, and the signatures were made by Pageant through an agent-forwarding mechanism. In other words, an adversary may already have enough signature information to compromise a victim's private key, even if there is no further use of vulnerable PuTTY versions. After a key compromise, an adversary may be able to conduct supply-chain attacks on software maintained in Git. A second, independent scenario is that the adversary is an operator of an SSH server to which the victim authenticates (for remote login or file copy), even though this server is not fully trusted by the victim, and the victim uses the same private key for SSH connections to other services operated by other entities. Here, the rogue server operator (who would otherwise have no way to determine the victim's private key) can derive the victim's private key, and then use it for unauthorized access to those other services. If the other services include Git services, then again it may be possible to conduct supply-chain attacks on software maintained in Git. This also affects, for example, FileZilla before 3.67.0, WinSCP before 6.3.3, TortoiseGit before 2.15.0.1, and TortoiseSVN through 1.14.6.",
+    "Score_CVSS": 5.9,
+    "Niveau_Risque": "Mod\u00e9r\u00e9",
+    "Date_Publication": "2024-04-15",
+    "Patch_Disponible": "Non",
+    "URL_Reference": "https://www.chiark.greenend.org.uk/~sgtatham/putty/changes.html",
+    "Type_Faille": "Non d\u00e9fini",
+    "Statut_Analyse": "Non analys\u00e9"
+  }
+]
