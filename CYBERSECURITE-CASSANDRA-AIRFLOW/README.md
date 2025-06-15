@@ -78,7 +78,7 @@ VOir fichier docker-compose.yml
 
 2. Lancer Airflow Scheduler et Webserver.
 
-3. Démarrer manuellement ou attendre le déclenchement programmé (ici tous les jours à 08h00).
+3. Démarrer manuellement
 
 4. Le DAG exécute la collecte, le stockage dans MinIO, puis le traitement et insertion dans Cassandra.
 
