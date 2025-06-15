@@ -1,18 +1,45 @@
-import {Box, Fade} from "@mui/material";
-import {memo, useState} from "react";
+import {
+    Box,
+    Button,
+    Chip,
+    CircularProgress,
+    Divider,
+    Fab,
+    Fade,
+    IconButton,
+    List,
+    ListItem,
+    Modal,
+    Pagination,
+    Paper, TextField,
+    Typography
+} from "@mui/material";
+import {memo, useEffect, useRef, useState} from "react";
 import {ClimbingBoxLoader} from "react-spinners";
-import toast from "react-hot-toast";
+import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
+import ChatIcon from '@mui/icons-material/Chat';
+import CloseIcon from '@mui/icons-material/Close';
+import SecurityIcon from '@mui/icons-material/Security';
+import SendIcon from '@mui/icons-material/Send';
 
 interface TCVE {
-    cve_id:string,
-    published_date:string,
-    score:number,
-    description:string,
+    cve_id: string,
+    published_date: string,
+    score: number,
+    description: string,
     articles: Array<{
-        title:string,
+        title: string,
         url: string,
     }>
 }
+
+interface message {
+    type: 'bot' | 'user',
+    content: string,
+    timestamp: Date,
+}
+
+
 
 export const HomePage = memo(() => {
 
@@ -20,6 +47,35 @@ export const HomePage = memo(() => {
     const [loading, setLoading] = useState(false);
     const [cveResults, setCveResults] = useState<Array<TCVE>>([]);
     const [error, setError] = useState('');
+    const [rowPerPage, setRowPerPage] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(0);
+
+    const [openChatBot, setOpenChatBot] = useState<boolean>(false);
+    const [messages, setMessages] = useState<message[]>([]);
+    const [currentStreamingMessage, setCurrentStreamingMessage] = useState<string>('');
+    const [inputValue, setInputValue] = useState<string>('');
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, currentStreamingMessage]);
+
+    const handleOpenChatbot = () => {
+        const [library, version] = searchQuery.split(':');
+        setMessages([{
+            type: 'bot',
+            content: `Bonjour ! Je suis là pour vous aider à analyser les CVE de votre bibliothèque ${library} ${version && version.length > 0 ? ('v'+version) : ''}. 
+        
+J'ai actuellement ${cveResults.length} CVE${cveResults.length > 1 ? 's' : ''} analyser. Que souhaitez-vous savoir ?`,
+            timestamp: new Date()
+        }]);
+        setOpenChatBot(true);
+    }
 
     const mockCVEData:Record<string, Array<TCVE>> = {
         'express': [
@@ -97,11 +153,12 @@ export const HomePage = memo(() => {
         }
 
         setLoading(true);
+        setCurrentPage(0);
         setError('');
         setCveResults([]);
 
         const [library, version] = searchQuery.split(':');
-        const response = await fetch("/getCve", {
+        const response = await fetch("http://localhost:5000/getCve", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -140,6 +197,89 @@ export const HomePage = memo(() => {
     const handleKeyPress = (event:any) => {
         if (event.key === 'Enter') {
             handleSearch();
+        }
+    };
+
+    const handleSendMessage = async () => {
+        if (!inputValue.trim() || isLoading) return;
+
+        const userMessage:message = {
+            type: 'user',
+            content: inputValue,
+            timestamp: new Date()
+        };
+
+        messages.push(userMessage);
+        setMessages([...messages]);
+        setIsLoading(true);
+        setCurrentStreamingMessage('');
+
+        try {
+            const response = await fetch('http://localhost:5000/chat_cve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    search: searchQuery,
+                    cve: cveResults,
+                    question: inputValue
+                })
+            });
+
+            setInputValue('');
+
+            if (!response.ok  || !response.body) {
+                throw new Error('Erreur de connexion à l\'API');
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let accumulatedResponse = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = JSON.parse(line.slice(6));
+                        if (data.content) {
+                            accumulatedResponse += data.content;
+                            setCurrentStreamingMessage(accumulatedResponse);
+                        } else if (data.error) {
+                            throw new Error(data.error);
+                        }
+
+                    }
+                }
+            }
+
+            // Ajouter le message final complet
+            const botMessage:message = {
+                type: 'bot',
+                content: accumulatedResponse,
+                timestamp: new Date()
+            };
+
+            messages.push(botMessage);
+            setMessages([...messages]);
+            setCurrentStreamingMessage('');
+
+        } catch (error) {
+            console.error('Erreur:', error);
+            const errorMessage:message = {
+                type: 'bot',
+                content: `Désolé, une erreur s'est produite : ${error}`,
+                timestamp: new Date()
+            };
+            messages.push(errorMessage);
+            setMessages([...messages]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -301,8 +441,8 @@ export const HomePage = memo(() => {
                         Vulnérabilités détectées ({cveResults.length})
                     </h3>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                        {cveResults.map((cve, index) => (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', overflowY:"auto", maxHeight:"calc(100vh - 500px)" }}>
+                        {cveResults.slice(currentPage*rowPerPage, (currentPage+1)*rowPerPage).map((cve, index) => (
                             <div key={index} style={{
                                 backgroundColor: 'white',
                                 borderRadius: '12px',
@@ -412,6 +552,18 @@ export const HomePage = memo(() => {
                             </div>
                         ))}
                     </div>
+                    <Box sx={{display:"flex", justifyContent:"center", alignItems:"center", padding:"10px"}}>
+                        <Pagination
+                            count={Math.ceil(cveResults.length/rowPerPage)}
+                            page={currentPage+1}
+                            siblingCount={0}
+                            size={"medium"}
+
+                            onChange={(evt, page) => {
+                                setCurrentPage(page-1);
+                            }}
+                        />
+                    </Box>
                 </div>
             )}
 
@@ -432,6 +584,226 @@ export const HomePage = memo(() => {
                     </h3>
                 </div>
             )}
+            <Fade in={searchQuery.length > 0 && cveResults.length > 0}>
+                <Fab sx={{position:"fixed", right:"50px", bottom:"50px"}} size={"large"} color={"primary"} onClick={() => { handleOpenChatbot() }}>
+                    <SmartToyOutlinedIcon sx={{height:"35px", width:"35px"}}/>
+                </Fab>
+            </Fade>
+            <Modal
+                open={openChatBot}
+                onClose={() => {setOpenChatBot(false) }}
+                closeAfterTransition
+            >
+                <Fade in={openChatBot}>
+                    <Box sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: { xs: '90%', sm: 600, md: 700 },
+                        height: { xs: '80%', sm: 600 },
+                        bgcolor: 'background.paper',
+                        borderRadius: 2,
+                        boxShadow: 24,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Header */}
+                        <Box sx={{
+                            p: 2,
+                            borderBottom: 1,
+                            borderColor: 'divider',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            bgcolor: 'primary.main',
+                            color: 'primary.contrastText'
+                        }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <ChatIcon />
+                                <Typography variant="h6" component="h2">
+                                    Assistant CVE
+                                </Typography>
+                            </Box>
+                            <IconButton
+                                onClick={() => { setOpenChatBot(false)}}
+                                sx={{ color: 'inherit' }}
+                            >
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
+
+                        {/* Info sur la recherche actuelle */}
+                        <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                                Recherche actuelle:
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                <Chip
+                                    icon={<SecurityIcon />}
+                                    label={`${searchQuery.split(':')[0]} ${searchQuery.split(':').length > 1 ? ('v'+searchQuery.split(':')[1]): '' }`}
+                                    color="primary"
+                                    variant="outlined"
+                                    size="small"
+                                />
+                                <Chip
+                                    label={`${cveResults.length} CVE${cveResults.length > 1 ? 's' : ''}`}
+                                    color="secondary"
+                                    size="small"
+                                />
+                                {Object.entries(cveResults).slice(0, 3).map(([cveId, cve]) => (
+                                    <Chip
+                                        key={cveId}
+                                        label={cve.cve_id}
+                                        sx={{color:getSeverityColor(cve.score)}}
+                                        size="small"
+                                        variant="outlined"
+                                    />
+                                ))}
+                                {cveResults.length > 3 && (
+                                    <Chip
+                                        label={`+${cveResults.length - 3} autres`}
+                                        size="small"
+                                        variant="outlined"
+                                    />
+                                )}
+                            </Box>
+                        </Box>
+
+                        <Divider />
+
+                        {/* Zone de messages */}
+                        <Box sx={{
+                            flex: 1,
+                            overflow: 'auto',
+                            p: 1,
+                            bgcolor: 'grey.25'
+                        }}>
+                            <List>
+                                {messages.map((message, index) => (
+                                    <ListItem
+                                        key={index}
+                                        sx={{
+                                            flexDirection: 'column',
+                                            alignItems: message.type === 'user' ? 'flex-end' : 'flex-start'
+                                        }}
+                                    >
+                                        <Paper
+                                            elevation={1}
+                                            sx={{
+                                                p: 2,
+                                                maxWidth: '80%',
+                                                bgcolor: message.type === 'user' ? 'primary.main' : 'background.paper',
+                                                color: message.type === 'user' ? 'primary.contrastText' : 'text.primary',
+                                                borderRadius: 2,
+                                                borderTopRightRadius: message.type === 'user' ? 0 : 2,
+                                                borderTopLeftRadius: message.type === 'bot' ? 0 : 2
+                                            }}
+                                        >
+                                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                {message.content}
+                                            </Typography>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    display: 'block',
+                                                    mt: 0.5,
+                                                    opacity: 0.7,
+                                                    textAlign: message.type === 'user' ? 'right' : 'left'
+                                                }}
+                                            >
+                                                {message.timestamp.toLocaleTimeString()}
+                                            </Typography>
+                                        </Paper>
+                                    </ListItem>
+                                ))}
+
+                                {/* Message en cours de streaming */}
+                                {currentStreamingMessage && (
+                                    <ListItem sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                                        <Paper
+                                            elevation={1}
+                                            sx={{
+                                                p: 2,
+                                                maxWidth: '80%',
+                                                bgcolor: 'background.paper',
+                                                borderRadius: 2,
+                                                borderTopLeftRadius: 0
+                                            }}
+                                        >
+                                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                {currentStreamingMessage}
+                                                <Box
+                                                    component="span"
+                                                    sx={{
+                                                        width: 2,
+                                                        height: 20,
+                                                        bgcolor: 'primary.main',
+                                                        display: 'inline-block',
+                                                        ml: 0.5,
+                                                        animation: 'blink 1s infinite'
+                                                    }}
+                                                />
+                                            </Typography>
+                                        </Paper>
+                                    </ListItem>
+                                )}
+
+                                {/* Indicateur de chargement */}
+                                {isLoading && !currentStreamingMessage && (
+                                    <ListItem sx={{ justifyContent: 'center' }}>
+                                        <CircularProgress size={20} />
+                                        <Typography variant="body2" sx={{ ml: 1 }}>
+                                            L'assistant réfléchit...
+                                        </Typography>
+                                    </ListItem>
+                                )}
+                            </List>
+                            <div ref={messagesEndRef} />
+                        </Box>
+
+                        {/* Zone de saisie */}
+                        <Box sx={{
+                            p: 2,
+                            borderTop: 1,
+                            borderColor: 'divider',
+                            bgcolor: 'background.paper'
+                        }}>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    multiline
+                                    maxRows={3}
+                                    placeholder="Posez votre question sur les CVE..."
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyPress={(event) => {
+                                        if (event.key === 'Enter' && !event.shiftKey) {
+                                            event.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
+                                    disabled={isLoading}
+                                    variant="outlined"
+                                    size="small"
+                                />
+                                <Button
+                                    variant="contained"
+                                    onClick={handleSendMessage}
+                                    disabled={!inputValue.trim() || isLoading}
+                                    sx={{ minWidth: 'auto', px: 2 }}
+                                >
+                                    <SendIcon />
+                                </Button>
+                            </Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                Appuyez sur Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Fade>
+            </Modal>
         </div>
     );
 });

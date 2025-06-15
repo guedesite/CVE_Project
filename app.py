@@ -8,10 +8,12 @@ import os
 from multiprocessing.synchronize import Lock as SyncLock
 from controller.httpServer import HttpServer
 from controller.fetch.data_services_nvd_nist_gov import Data_services_nvd_nist_gov
-
+import openai
 from controller.conSources import start_cron_sources
 
 load_dotenv()
+
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
