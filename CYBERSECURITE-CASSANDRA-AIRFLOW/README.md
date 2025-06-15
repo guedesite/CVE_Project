@@ -10,10 +10,7 @@
   - [2. Stockage dans MinIO](#2-stockage-dans-minio)  
   - [3. Insertion dans Cassandra](#3-insertion-dans-cassandra)  
   - [4. Orchestration avec Airflow](#4-orchestration-avec-airflow)  
-- [Exécution du pipeline](#exécution-du-pipeline)  
-- [Gestion des erreurs et logs](#gestion-des-erreurs-et-logs)  
-- [Améliorations futures](#améliorations-futures)  
-- [Annexes](#annexes)  
+- [Exécution du pipeline](#exécution-du-pipeline)   
 
 ---
 
