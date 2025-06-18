@@ -9,7 +9,7 @@ from multiprocessing.synchronize import Lock as SyncLock
 from controller.httpServer import HttpServer
 from controller.fetch.data_services_nvd_nist_gov import Data_services_nvd_nist_gov
 import openai
-from controller.conSources import start_cron_sources
+from controller.cronSources import start_cron_sources
 
 load_dotenv()
 
