@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Service pour builder le frontend React
+  web-builder:
+    image: node:22-alpine
+    working_dir: /app/web
+    volumes:
+      - .:/app
+      - node_modules_cache:/app/web/node_modules
+    command: sh -c "npm install && npm run build"
+    networks:
+      - cve-network
+
+  # Service principal pour l'application Python
+  cve-scanner:
+    image: python:3.10-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+      - pip_cache:/root/.cache/pip
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: sh -c "pip install -r requirements.txt && python app.py"
+    depends_on:
+      - web-builder
+    networks:
+      - cve-network
+    restart: unless-stopped
+
+volumes:
+  node_modules_cache:
+  pip_cache:
+
+networks:
+  cve-network:
+    driver: bridge
